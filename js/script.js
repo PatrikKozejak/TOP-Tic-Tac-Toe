@@ -13,17 +13,13 @@ function Gameboard() {
   const getBoard = () => board;
 
   const putMark = (cell, player) => {
-    if (cell.getValue() === 0) {
-      console.log(`Marking cell with ${player}`);
-      cell.addMark(player); // Mark the cell
-    } else {
-      console.log("Cell already occupied!");
-    }
+    console.log(`Marking cell with ${player}`);
+    cell.addMark(player); // Mark the cell
   };
 
   const printBoard = () => {
     const boardWithCellValues = board.map((row) =>
-      row.map((cell) => cell.getValue)
+      row.map((cell) => cell.getValue())
     );
     console.log(boardWithCellValues);
   };
@@ -75,17 +71,62 @@ function GameController(
   };
 
   const playRound = (cell) => {
-    board.putMark(cell, getActivePlayer().mark);
+    if (cell.getValue() === 0) {
+      board.putMark(cell, getActivePlayer().mark);
 
-    switchPlayerTurn();
-    printNewRound();
+      switchPlayerTurn();
+      printNewRound();
+    } else {
+      console.log("Cell already occupied!");
+    }
   };
 
-  const getBoard = () => board.getBoard(); // Expose the board to get cells
   // Initial play game message
   printNewRound();
 
-  return { playRound, getActivePlayer, getBoard };
+  return {
+    playRound,
+    getActivePlayer,
+    getBoard: board.getBoard,
+    switchPlayerTurn,
+    printNewRound,
+  };
 }
 
-const game = GameController();
+function ScreenController() {
+  const game = GameController();
+  const playerTurnDiv = document.querySelector(".turn");
+  const boardDiv = document.querySelector(".board");
+
+  const updateScreen = () => {
+    boardDiv.textContent = "";
+
+    const board = game.getBoard();
+    const activePlayer = game.getActivePlayer();
+
+    playerTurnDiv.textContent = `${activePlayer.name}'s turn...`;
+    board.forEach((row, rowIndex) => {
+      row.forEach((cell, index) => {
+        const cellButton = document.createElement("button");
+        cellButton.classList.add("cell");
+        cellButton.dataset.row = rowIndex;
+        cellButton.dataset.column = index;
+        cellButton.textContent = cell.getValue();
+        cellButton.addEventListener("click", clickHandlerBoard);
+        boardDiv.appendChild(cellButton);
+      });
+    });
+  };
+
+  function clickHandlerBoard(e) {
+    // Get coords of clicked Cell
+    const selectedCell = [e.target.dataset.row, e.target.dataset.column];
+
+    if (!selectedCell) return;
+    game.playRound(game.getBoard()[selectedCell[0]][selectedCell[1]]);
+    updateScreen();
+  }
+  // Initial render
+  updateScreen();
+}
+ScreenController();
