@@ -21,7 +21,6 @@ function Gameboard() {
     const boardWithCellValues = board.map((row) =>
       row.map((cell) => cell.getValue())
     );
-    console.log(boardWithCellValues);
   };
 
   return { getBoard, printBoard, putMark };
@@ -35,9 +34,13 @@ function Cell() {
     value = player;
   };
 
+  const removeMark = () => {
+    value = 0;
+  };
+
   const getValue = () => value;
 
-  return { addMark, getValue };
+  return { addMark, removeMark, getValue };
 }
 
 function EventEmitter() {
@@ -149,6 +152,11 @@ function GameController(
     }
   };
 
+  const resetBoard = () => {
+    board.getBoard().forEach((row) => row.forEach((cell) => cell.removeMark()));
+    switchPlayerTurn();
+  };
+
   // Initial play game message
   printNewRound();
 
@@ -156,6 +164,7 @@ function GameController(
     playRound,
     getActivePlayer,
     getBoard: board.getBoard,
+    resetBoard,
     on: eventEmitter.on,
     emit: eventEmitter.emit,
   };
@@ -199,6 +208,14 @@ function ScreenController() {
 
     game.playRound(selectedCell);
   }
+
+  function endOfGame(e) {
+    e.stopPropagation();
+    game.resetBoard();
+    updateScreen();
+    boardDiv.removeEventListener("click", endOfGame, { capture: true });
+  }
+
   game.on("validMove", () => {
     updateScreen();
     guideDiv.textContent = "";
@@ -212,10 +229,10 @@ function ScreenController() {
   });
 
   game.on("playerWin", ({ winningRow }) => {
-    console.log("playerWon emit");
     updateScreen();
     playerTurnDiv.textContent = `${game.getActivePlayer().name} has won!`;
-    guideDiv.textContent = "";
+    guideDiv.textContent = "Click anywhere on the board for new round.";
+    boardDiv.addEventListener("click", endOfGame, { capture: true });
   });
 
   // Initial render
