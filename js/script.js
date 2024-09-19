@@ -137,7 +137,10 @@ function GameController(
       if (!playerWon(getActivePlayer())) {
         switchPlayerTurn();
         printNewRound();
-        eventEmitter.emit("validMove", { cell, player: activePlayer });
+        eventEmitter.emit("validMove", {
+          cell,
+          player: activePlayer,
+        });
       }
     } else if (cell.getValue() === activePlayer.mark) {
       eventEmitter.emit("invalidMove", { cell, player: activePlayer });
@@ -177,7 +180,11 @@ function ScreenController() {
         cellButton.classList.add("cell");
         cellButton.dataset.row = rowIndex;
         cellButton.dataset.column = index;
-        cellButton.textContent = cell.getValue();
+        if (cell.getValue() === 1) {
+          cellButton.classList.add("nought");
+        } else if (cell.getValue() === 2) {
+          cellButton.classList.add("cross");
+        }
         cellButton.addEventListener("click", clickHandlerBoard);
         boardDiv.appendChild(cellButton);
       });

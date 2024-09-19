@@ -26,6 +26,14 @@ button {
   border: none;
 }
 
+.nought {
+  background-image: url("../assets/nought.svg");
+}
+
+.cross {
+  background-image: url("../assets/cross.svg");
+}
+
 .cell:nth-child(-n + 3) {
   border-bottom: var(--border);
 }
