@@ -7,10 +7,45 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    <div class="container">
-      <h1 class="turn"></h1>
-      <div class="board"></div>
-      <h2 class="guide"></h2>
+    <div class="content">
+      <div class="menu">
+        <form onsubmit="">
+          <div class="flex-container">
+            <div class="player-one-div">
+              <label for="player-one">Player one</label>
+              <input
+                id="player-one"
+                type="text"
+                placeholder="First player name"
+                required
+              />
+              <img
+                src="assets/nought.svg"
+                alt="nought symbol of first player"
+              />
+            </div>
+            <div class="main">
+              <h1>Please fill in the names of the both players</h1>
+              <button class="start">Start game</button>
+            </div>
+            <div class="player-two-div">
+              <label for="player-two">Player two</label>
+              <input
+                id="player-two"
+                type="text"
+                placeholder="Second player name"
+                required
+              />
+              <img src="assets/cross.svg" alt="cross symbol of second player" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="container">
+        <h1 class="turn"></h1>
+        <div class="board"></div>
+        <h2 class="guide"></h2>
+      </div>
     </div>
     <script src="js/script.js"></script>
   </body>

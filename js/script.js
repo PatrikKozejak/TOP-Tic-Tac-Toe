@@ -152,6 +152,10 @@ function GameController(
     }
   };
 
+  const setPlayerName = (playerIndex, name) => {
+    players[playerIndex].name = name;
+  };
+
   const resetBoard = () => {
     board.getBoard().forEach((row) => row.forEach((cell) => cell.removeMark()));
     switchPlayerTurn();
@@ -164,6 +168,7 @@ function GameController(
     playRound,
     getActivePlayer,
     getBoard: board.getBoard,
+    setPlayerName,
     resetBoard,
     on: eventEmitter.on,
     emit: eventEmitter.emit,
@@ -171,6 +176,12 @@ function GameController(
 }
 
 function ScreenController() {
+  const boardContainer = document.querySelector(".container");
+  boardContainer.style.display = "none";
+
+  const startGameButton = document.querySelector(".start");
+  startGameButton.addEventListener("click", checkFilledNames, false);
+
   const game = GameController();
   const playerTurnDiv = document.querySelector(".turn");
   const boardDiv = document.querySelector(".board");
@@ -209,6 +220,23 @@ function ScreenController() {
     game.playRound(selectedCell);
   }
 
+  function checkFilledNames(event) {
+    event.preventDefault();
+    const menu = document.querySelector(".menu");
+
+    const playerOneName = document.querySelector("#player-one").value;
+    const playerTwoName = document.querySelector("#player-two").value;
+
+    if (playerOneName !== "" && playerTwoName !== "") {
+      menu.style.display = "none";
+      boardContainer.style.display = "block";
+      game.setPlayerName(0, playerOneName);
+      game.setPlayerName(1, playerTwoName);
+      // Initial render
+      updateScreen();
+    }
+  }
+
   function endOfGame(e) {
     e.stopPropagation();
     game.resetBoard();
@@ -234,8 +262,5 @@ function ScreenController() {
     guideDiv.textContent = "Click anywhere on the board for new round.";
     boardDiv.addEventListener("click", endOfGame, { capture: true });
   });
-
-  // Initial render
-  updateScreen();
 }
 ScreenController();
