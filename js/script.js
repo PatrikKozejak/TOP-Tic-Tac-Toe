@@ -76,10 +76,12 @@ function GameController(
     {
       name: playerOneName,
       mark: 1,
+      points: 0,
     },
     {
       name: playerTwoName,
       mark: 2,
+      points: 0,
     },
   ];
 
@@ -152,9 +154,17 @@ function GameController(
     }
   };
 
+  const getNameOfPlayer = (playerIndex) => players[playerIndex].name;
+
   const setPlayerName = (playerIndex, name) => {
     players[playerIndex].name = name;
   };
+
+  const addPointToWinner = () => {
+    activePlayer.points++;
+  };
+
+  const getPointsOfPlayer = (playerIndex) => players[playerIndex].points;
 
   const resetBoard = () => {
     board.getBoard().forEach((row) => row.forEach((cell) => cell.removeMark()));
@@ -168,7 +178,10 @@ function GameController(
     playRound,
     getActivePlayer,
     getBoard: board.getBoard,
+    getNameOfPlayer,
     setPlayerName,
+    getPointsOfPlayer,
+    addPointToWinner,
     resetBoard,
     on: eventEmitter.on,
     emit: eventEmitter.emit,
@@ -176,7 +189,7 @@ function GameController(
 }
 
 function ScreenController() {
-  const boardContainer = document.querySelector(".container");
+  const boardContainer = document.querySelector(".game-wrapper");
   boardContainer.style.display = "none";
 
   const startGameButton = document.querySelector(".start");
@@ -187,12 +200,18 @@ function ScreenController() {
   const boardDiv = document.querySelector(".board");
   const guideDiv = document.querySelector(".guide");
 
+  const playerOneName = document.querySelector(".player-one-name");
+  const playerTwoName = document.querySelector(".player-two-name");
+  const playerOnePoints = document.querySelector(".player-one-points");
+  const playerTwoPoints = document.querySelector(".player-two-points");
+
   const updateScreen = () => {
     boardDiv.textContent = "";
 
     const board = game.getBoard();
     const activePlayer = game.getActivePlayer();
-
+    playerOnePoints.textContent = game.getPointsOfPlayer(0);
+    playerTwoPoints.textContent = game.getPointsOfPlayer(1);
     playerTurnDiv.textContent = `${activePlayer.name}'s turn...`;
     board.forEach((row, rowIndex) => {
       row.forEach((cell, index) => {
@@ -224,14 +243,17 @@ function ScreenController() {
     event.preventDefault();
     const menu = document.querySelector(".menu");
 
-    const playerOneName = document.querySelector("#player-one").value;
-    const playerTwoName = document.querySelector("#player-two").value;
+    const playerOneInput = document.querySelector("#player-one").value;
+    const playerTwoInput = document.querySelector("#player-two").value;
 
-    if (playerOneName !== "" && playerTwoName !== "") {
+    if (playerOneInput !== "" && playerTwoInput !== "") {
       menu.style.display = "none";
-      boardContainer.style.display = "block";
-      game.setPlayerName(0, playerOneName);
-      game.setPlayerName(1, playerTwoName);
+      boardContainer.style.display = "grid";
+
+      game.setPlayerName(0, playerOneInput);
+      game.setPlayerName(1, playerTwoInput);
+      playerOneName.textContent = game.getNameOfPlayer(0);
+      playerTwoName.textContent = game.getNameOfPlayer(1);
       // Initial render
       updateScreen();
     }
@@ -242,6 +264,7 @@ function ScreenController() {
     game.resetBoard();
     updateScreen();
     boardDiv.removeEventListener("click", endOfGame, { capture: true });
+    guideDiv.textContent = "";
   }
 
   game.on("validMove", () => {
@@ -257,6 +280,7 @@ function ScreenController() {
   });
 
   game.on("playerWin", ({ winningRow }) => {
+    game.addPointToWinner();
     updateScreen();
     playerTurnDiv.textContent = `${game.getActivePlayer().name} has won!`;
     guideDiv.textContent = "Click anywhere on the board for new round.";
