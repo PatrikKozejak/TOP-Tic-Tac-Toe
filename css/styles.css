@@ -162,7 +162,7 @@ input::placeholder {
   opacity: 0.5;
 }
 
-.start {
+.main-button {
   background-color: #e5e5e5;
   border: 2px solid black;
   width: 160px;
@@ -173,7 +173,13 @@ input::placeholder {
   transition-duration: 0.4s;
 }
 
-.start:hover {
+.main-button:hover {
   color: white;
   background-color: #fca311;
+}
+
+.restart {
+  position: absolute;
+  top: 20px;
+  right: 60px;
 }

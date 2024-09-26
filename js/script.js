@@ -14,7 +14,6 @@ function Gameboard() {
   const getBoard = () => board;
 
   const putMark = (cell = 0, player = 0) => {
-    console.log(`Marking cell with ${player}`);
     cell.addMark(player); // Mark the cell
   };
 
@@ -33,7 +32,6 @@ function Cell(rowIndex, columnIndex) {
   let column = columnIndex;
 
   const addMark = (player) => {
-    console.log(`addMark called with player ${player}`);
     value = player;
   };
 
@@ -102,7 +100,6 @@ function GameController(
 
   const printNewRound = () => {
     board.printBoard();
-    console.log(`${getActivePlayer().name}'s turn.`);
   };
 
   const checkIfPlayerWon = (player) => {
@@ -173,12 +170,17 @@ function GameController(
 
   const getPointsOfPlayer = (playerIndex) => players[playerIndex].points;
 
+  const resetPlayers = () => {
+    players.forEach((player) => (player.points = 0));
+    activePlayer = players[0];
+  };
+
   const resetBoard = () => {
     board.getBoard().forEach((row) => row.forEach((cell) => cell.removeMark()));
     switchPlayerTurn();
   };
 
-  const checkForTie = () => {
+  const checkForDraw = () => {
     if (
       board
         .getBoard()
@@ -202,7 +204,8 @@ function GameController(
     getPointsOfPlayer,
     addPointToWinner,
     resetBoard,
-    checkForTie,
+    resetPlayers,
+    checkForDraw,
     on: eventEmitter.on,
     emit: eventEmitter.emit,
   };
@@ -214,6 +217,9 @@ function ScreenController() {
 
   const startGameButton = document.querySelector(".start");
   startGameButton.addEventListener("click", checkFilledNames, false);
+
+  const restartGameButton = document.querySelector(".restart");
+  restartGameButton.addEventListener("click", restartGame, false);
 
   const game = GameController();
   const playerTurnDiv = document.querySelector(".turn");
@@ -279,6 +285,15 @@ function ScreenController() {
     }
   }
 
+  function restartGame() {
+    game.resetBoard();
+    game.resetPlayers();
+    boardDiv.removeEventListener("click", restartGame, { capture: true });
+    // Remove eventListener in case restart occurs at the end of the round
+    boardDiv.removeEventListener("click", endOfGame, { capture: true });
+    updateScreen();
+  }
+
   function determineLineCoords(winningLine) {
     const [startRow, startColumn] = winningLine[0].getCellIndexes();
     const [endRow, endColumn] = winningLine[2].getCellIndexes();
@@ -312,7 +327,6 @@ function ScreenController() {
   }
 
   function highlightWinningLine(winningLine) {
-    winningLine.forEach((cell) => console.log(cell.getCellIndexes()));
     let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.classList.add("cross-line");
     svg.setAttributeNS(
@@ -327,7 +341,6 @@ function ScreenController() {
     );
 
     const lineCoordinates = determineLineCoords(winningLine);
-    console.log(typeof lineCoordinates);
     newLine.setAttribute("x1", lineCoordinates[0]);
     newLine.setAttribute("y1", lineCoordinates[1]);
     newLine.setAttribute("x2", lineCoordinates[2]);
@@ -348,7 +361,7 @@ function ScreenController() {
   game.on("validMove", () => {
     updateScreen();
     guideDiv.textContent = "";
-    game.checkForTie();
+    game.checkForDraw();
   });
 
   game.on("invalidMove", () => {
