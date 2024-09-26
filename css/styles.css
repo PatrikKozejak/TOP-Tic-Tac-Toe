@@ -1,6 +1,6 @@
 :root {
-  --border: 8px solid #000000;
-  background-color: #e5e5e5;
+  --border: 8px solid #0a0a0a;
+  background-color: #c2c2c2;
 }
 
 *,
@@ -16,6 +16,15 @@
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
   padding: 2px;
+  position: relative;
+}
+
+.cross-line {
+  position: absolute;
+  width: 580px;
+  height: 580px;
+  stroke: #dc2626;
+  stroke-width: 6;
 }
 
 .cell {
@@ -28,7 +37,7 @@
 }
 
 button {
-  background: #e5e5e5;
+  background: #c2c2c2;
   border: none;
 }
 
@@ -46,18 +55,22 @@ button {
 
 .cell:nth-child(-n + 3) {
   border-bottom: var(--border);
+  margin-top: 4px;
 }
 
 .cell:nth-child(3n + 1) {
   border-right: var(--border);
+  margin-left: 4px;
 }
 
 .cell:nth-child(3n) {
   border-left: var(--border);
+  margin-right: 4px;
 }
 
 .cell:nth-child(n + 7) {
   border-top: var(--border);
+  margin-bottom: 4px;
 }
 
 .content {

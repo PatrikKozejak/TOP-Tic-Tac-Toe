@@ -6,13 +6,14 @@ function Gameboard() {
   for (let i = 0; i < rows; i++) {
     board[i] = [];
     for (let j = 0; j < columns; j++) {
-      board[i].push(Cell());
+      let newCell = new Cell(i, j);
+      board[i].push(newCell);
     }
   }
 
   const getBoard = () => board;
 
-  const putMark = (cell, player) => {
+  const putMark = (cell = 0, player = 0) => {
     console.log(`Marking cell with ${player}`);
     cell.addMark(player); // Mark the cell
   };
@@ -26,8 +27,10 @@ function Gameboard() {
   return { getBoard, printBoard, putMark };
 }
 
-function Cell() {
+function Cell(rowIndex, columnIndex) {
   let value = 0;
+  let row = rowIndex;
+  let column = columnIndex;
 
   const addMark = (player) => {
     console.log(`addMark called with player ${player}`);
@@ -40,7 +43,11 @@ function Cell() {
 
   const getValue = () => value;
 
-  return { addMark, removeMark, getValue };
+  const getCellIndexes = () => {
+    return [row, column];
+  };
+
+  return { addMark, removeMark, getValue, getCellIndexes };
 }
 
 function EventEmitter() {
@@ -129,7 +136,7 @@ function GameController(
 
     const secondDiagonal = board.getBoard().map((row, index) => row[2 - index]);
 
-    if (firstDiagonal.every((cell) => cell.getValue() === player.mark)) {
+    if (secondDiagonal.every((cell) => cell.getValue() === player.mark)) {
       eventEmitter.emit("playerWin", { winningRow: secondDiagonal });
       return true;
     }
@@ -259,6 +266,64 @@ function ScreenController() {
     }
   }
 
+  function determineLineCoords(winningLine) {
+    const [startRow, startColumn] = winningLine[0].getCellIndexes();
+    const [endRow, endColumn] = winningLine[2].getCellIndexes();
+    const cellSize = 580 / 3;
+    const offset = cellSize / 2;
+    let x1, y1, x2, y2;
+
+    if (startRow === endRow) {
+      // winningLine is a row
+      x1 = 0;
+      y1 = cellSize * endRow + offset;
+      x2 = 580;
+      y2 = cellSize * endRow + offset;
+      // winningLine is a column
+    } else if (startColumn === endColumn) {
+      x1 = cellSize * startColumn + offset;
+      y1 = 0;
+      x2 = cellSize * endColumn + offset;
+      y2 = 580;
+    } else {
+      // winningLine is a diagonal
+      if (startRow < endRow && startColumn < endColumn) {
+        x1 = y1 = 0;
+        x2 = y2 = 580;
+      } else {
+        x1 = y2 = 0;
+        y1 = x2 = 580;
+      }
+    }
+    return [x1, y1, x2, y2];
+  }
+
+  function highlightWinningLine(winningLine) {
+    winningLine.forEach((cell) => console.log(cell.getCellIndexes()));
+    let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("cross-line");
+    svg.setAttributeNS(
+      "http://www.w3.org/2000/xmlns/",
+      "xmlns:xlink",
+      "http://www.w3.org/1999/xlink"
+    );
+    document.body.appendChild(svg);
+    let newLine = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line"
+    );
+
+    const lineCoordinates = determineLineCoords(winningLine);
+    console.log(typeof lineCoordinates);
+    newLine.setAttribute("x1", lineCoordinates[0]);
+    newLine.setAttribute("y1", lineCoordinates[1]);
+    newLine.setAttribute("x2", lineCoordinates[2]);
+    newLine.setAttribute("y2", lineCoordinates[3]);
+
+    svg.appendChild(newLine);
+    boardDiv.appendChild(svg);
+  }
+
   function endOfGame(e) {
     e.stopPropagation();
     game.resetBoard();
@@ -281,7 +346,9 @@ function ScreenController() {
 
   game.on("playerWin", ({ winningRow }) => {
     game.addPointToWinner();
+
     updateScreen();
+    highlightWinningLine(winningRow);
     playerTurnDiv.textContent = `${game.getActivePlayer().name} has won!`;
     guideDiv.textContent = "Click anywhere on the board for new round.";
     boardDiv.addEventListener("click", endOfGame, { capture: true });
