@@ -105,7 +105,7 @@ function GameController(
     console.log(`${getActivePlayer().name}'s turn.`);
   };
 
-  const playerWon = (player) => {
+  const checkIfPlayerWon = (player) => {
     // Check each rows for a winning condition
     const winningRow = board
       .getBoard()
@@ -146,7 +146,7 @@ function GameController(
   const playRound = (cell) => {
     if (cell.getValue() === 0) {
       board.putMark(cell, getActivePlayer().mark);
-      if (!playerWon(getActivePlayer())) {
+      if (!checkIfPlayerWon(getActivePlayer())) {
         switchPlayerTurn();
         printNewRound();
         eventEmitter.emit("validMove", {
@@ -178,6 +178,18 @@ function GameController(
     switchPlayerTurn();
   };
 
+  const checkForTie = () => {
+    if (
+      board
+        .getBoard()
+        .every((row) => row.every((cell) => cell.getValue() !== 0))
+    ) {
+      eventEmitter.emit("draw");
+      // Ensure each round starts with a different player
+      switchPlayerTurn();
+    }
+  };
+
   // Initial play game message
   printNewRound();
 
@@ -190,6 +202,7 @@ function GameController(
     getPointsOfPlayer,
     addPointToWinner,
     resetBoard,
+    checkForTie,
     on: eventEmitter.on,
     emit: eventEmitter.emit,
   };
@@ -335,6 +348,7 @@ function ScreenController() {
   game.on("validMove", () => {
     updateScreen();
     guideDiv.textContent = "";
+    game.checkForTie();
   });
 
   game.on("invalidMove", () => {
@@ -350,6 +364,12 @@ function ScreenController() {
     updateScreen();
     highlightWinningLine(winningRow);
     playerTurnDiv.textContent = `${game.getActivePlayer().name} has won!`;
+    guideDiv.textContent = "Click anywhere on the board for new round.";
+    boardDiv.addEventListener("click", endOfGame, { capture: true });
+  });
+
+  game.on("draw", () => {
+    playerTurnDiv.textContent = `Draw!`;
     guideDiv.textContent = "Click anywhere on the board for new round.";
     boardDiv.addEventListener("click", endOfGame, { capture: true });
   });
